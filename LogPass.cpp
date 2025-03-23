@@ -186,7 +186,7 @@ std::string getStrValue(llvm::Value *value)
 
 void buildDefUseGraph(llvm::Function &F)
 {
-    std::ofstream dotFile("def_use_graph.dot");
+    std::ofstream dotFile("build/DefUseGraph.dot");
     dotFile << "digraph G {\n";
 
     for (auto &BB : F)

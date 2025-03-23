@@ -1,12 +1,4 @@
-#include <stdio.h>
-#include <limits.h>
-#include <stdbool.h>
-#include <stdint.h>
-
-struct Point
-{
-	int x, y;
-};
+#pragma once
 
 void logDefUseInt1(const char *type, bool value)
 {
@@ -51,12 +43,4 @@ void logDefUseDouble(const char *type, double value)
 void logDefUsePointer(const char *type, const void* value)
 {
 	printf("%s (pointer): %p\n", type, value);
-}
-
-int main()
-{   
-	float x = 65;
-	float *px = &x;
-	x += 4;
-	return 0;
 }
