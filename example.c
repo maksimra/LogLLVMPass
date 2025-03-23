@@ -1,13 +1,62 @@
 #include <stdio.h>
+#include <limits.h>
+#include <stdbool.h>
+#include <stdint.h>
 
-void logDefUse(const char *type, int value)
+struct Point
 {
-    printf("%s: %d\n", type, value);
+	int x, y;
+};
+
+void logDefUseInt1(const char *type, bool value)
+{
+	printf("%s (i1): (as unsigned) %u, "
+		   "(as signed) %d\n", type, value, value);
+}
+
+void logDefUseInt8(const char *type, uint8_t value)
+{
+	printf("%s (i8): (as unsigned) %hhu, "
+		   "(as signed) %hhd\n", type, value, value);
+}
+
+void logDefUseInt16(const char *type, uint16_t value)
+{
+	printf("%s (i16): (as unsigned) %hu, "
+		   "(as signed) %hd\n", type, value, value);
+}
+
+void logDefUseInt32(const char *type, uint32_t value)
+{
+	printf("%s (i32): (as unsigned) %u, "
+		   "(as signed) %d\n", type, value, value);
+}
+
+void logDefUseInt64(const char *type, uint64_t value)
+{
+	printf("%s (i64): (as unsigned) %lu, "
+		   "(as signed) %ld\n", type, value, value);
+}
+
+void logDefUseFloat(const char *type, float value)
+{
+	printf("%s (float): %g\n", type, value);
+}
+
+void logDefUseDouble(const char *type, double value)
+{
+	printf("%s (double): %g\n", type, value);
+}
+
+void logDefUsePointer(const char *type, const void* value)
+{
+	printf("%s (pointer): %p\n", type, value);
 }
 
 int main()
 {   
-	  int a = 5;
-	  int b = 10;
-	  return a + b - z;
+	float x = 65;
+	float *px = &x;
+	x += 4;
+	return 0;
 }
