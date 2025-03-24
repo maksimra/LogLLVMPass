@@ -9,6 +9,8 @@
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/IRBuilder.h"
 
+// TODO: This file is unused. Do you really need this headr?
+
 void              loggingPass      (llvm::Function &F);
 void              buildDefUseGraph (llvm::Function &F);
 std::string       getStrValue      (llvm::Value *value);

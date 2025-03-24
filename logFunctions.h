@@ -1,5 +1,7 @@
 #pragma once
 
+// TODO: Why are these functions defined in header? It can easily lead you to ODR violation. Either define them as inline, "weak", or more preferably just move them to source file since you don't need their prototypes.
+
 void logDefUseInt1(const char *type, bool value)
 {
 	printf("%s (i1): (as unsigned) %u, "

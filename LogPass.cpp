@@ -44,6 +44,7 @@ struct LogFunction
     const char* func_name;
 };
 
+// It would be better to move it inside pass' class 
 const LogFunction FUNCTIONS[] = 
 {
     {LOG_UNKNOW},
@@ -114,6 +115,8 @@ void print_error(LogError error)
     std::cerr << get_error_msg(error) << std::endl;
 }
 
+// TODO: Why is it a standalone function, not private method of DefUseInstrumentationPass?
+//       Same question for almost all of the other functions in this file
 LogError insertLoggingCall(llvm::IRBuilder<> &builder, llvm::Value *valueToLog, const std::string &type)
 {
     llvm::Module *M = builder.GetInsertBlock()->getModule();
@@ -125,7 +128,7 @@ LogError insertLoggingCall(llvm::IRBuilder<> &builder, llvm::Value *valueToLog, 
         for (unsigned elem_number = 0; elem_number < structTy->getNumElements(); ++elem_number)
         {
             llvm::Value *field = builder.CreateExtractValue(valueToLog, {elem_number});
-            insertLoggingCall(builder, field, type + ".field" + std::to_string(elem_number));
+            insertLoggingCall(builder, field, type + ".field" + std::to_string(elem_number)); // TODO: I assume "type" param is not a type, but a name. So, what if you have two structs with fist value of type int in same basic block? Both of them will have the same name, I believe...
         }
         return ERROR_OK;
     }
@@ -179,7 +182,7 @@ std::string getStrValue(llvm::Value *value)
     }
 
     if (auto *tempVal = llvm::dyn_cast<llvm::Instruction>(value))
-        return std::string("temp_value");
+        return std::string("temp_value"); // ? Please, levave comments to explain yourself. There are no "temp values" in IR spec.
 
     return std::string("error_value");
 }
@@ -193,6 +196,9 @@ void buildDefUseGraph(llvm::Function &F)
     {
         for (auto &I : BB)
         {
+            // TODO: What if it's not a store and a load instruction?
+            //       for example, phi-node or add / sub / call / mul etc. instruction?
+            
             if (auto *storeInst = llvm::dyn_cast<llvm::StoreInst>(&I))
             {
                 llvm::Value *value   = storeInst->getValueOperand();
@@ -224,6 +230,8 @@ void loggingPass (llvm::Function &F)
         for (auto &I : BB)
         {
             LogError error = ERROR_OK;
+            // TODO: Same as above. What if it's not steroe / load? For example, alloca inst, or gep inst?
+            
             if (auto *storeInst = llvm::dyn_cast<llvm::StoreInst>(&I))
             {
                 llvm::IRBuilder<> builder(storeInst);
@@ -274,6 +282,7 @@ llvmGetPassPluginInfo()
         {
             PB.registerPipelineStartEPCallback([](llvm::ModulePassManager &MPM, llvm::OptimizationLevel)
                                                {
+                                                    // It's not really good idea to print something here. At least, put this into #ifndef NDEBUG 
                                                    llvm::errs() << "LogPass: Adding Pass to pipeline!\n";
                                                    MPM.addPass(llvm::createModuleToFunctionPassAdaptor(DefUseInstrumentationPass()));
                                                    return true;

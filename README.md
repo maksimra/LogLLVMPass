@@ -2,6 +2,9 @@
 ## Description
 This program adds instrumentation to LLVM IR and generates a .png def-use graph. 
 ## Build
+
+Please, specify llvm version!
+
 (for the code in main.c)
 1) Clone the repository:
 ```
