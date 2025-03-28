@@ -71,14 +71,14 @@ namespace
 class DefUseInstrumentationPass : public llvm::PassInfoMixin<DefUseInstrumentationPass>
 {
     static constexpr LogFunction FUNCTIONS[NUMBER_LOG_FUNCTIONS] = {{LOG_UNKNOW},
-                                                         {LOG_INT1, "logDefUseInt1"},
-                                                         {LOG_INT8, "logDefUseInt8"},
-                                                         {LOG_INT16, "logDefUseInt16"},
-                                                         {LOG_INT32, "logDefUseInt32"},
-                                                         {LOG_INT64, "logDefUseInt64"},
-                                                         {LOG_FLOAT, "logDefUseFloat"},
-                                                         {LOG_DOUBLE, "logDefUseDouble"},
-                                                         {LOG_POINTER, "logDefUsePointer"}};
+                                                                    {LOG_INT1, "logDefUseInt1"},
+                                                                    {LOG_INT8, "logDefUseInt8"},
+                                                                    {LOG_INT16, "logDefUseInt16"},
+                                                                    {LOG_INT32, "logDefUseInt32"},
+                                                                    {LOG_INT64, "logDefUseInt64"},
+                                                                    {LOG_FLOAT, "logDefUseFloat"},
+                                                                    {LOG_DOUBLE, "logDefUseDouble"},
+                                                                    {LOG_POINTER, "logDefUsePointer"}};
 
   public:
     llvm::PreservedAnalyses run(llvm::Function &F, llvm::FunctionAnalysisManager &AM)
@@ -277,17 +277,11 @@ class DefUseInstrumentationPass : public llvm::PassInfoMixin<DefUseInstrumentati
 };
 } // namespace
 
-extern "C" LLVM_ATTRIBUTE_WEAK ::llvm::PassPluginLibraryInfo llvmGetPassPluginInfo() {
-    return {
-        LLVM_PLUGIN_API_VERSION,
-        "LoggingPass",
-        LLVM_VERSION_STRING,
-        [](llvm::PassBuilder &PB) {
-            PB.registerPipelineStartEPCallback(
-                [](llvm::ModulePassManager &MPM, llvm::OptimizationLevel) {
+extern "C" LLVM_ATTRIBUTE_WEAK ::llvm::PassPluginLibraryInfo llvmGetPassPluginInfo()
+{
+    return {LLVM_PLUGIN_API_VERSION, "LoggingPass", LLVM_VERSION_STRING, [](llvm::PassBuilder &PB) {
+                PB.registerPipelineStartEPCallback([](llvm::ModulePassManager &MPM, llvm::OptimizationLevel) {
                     MPM.addPass(llvm::createModuleToFunctionPassAdaptor(DefUseInstrumentationPass()));
-                }
-            );
-        }
-    };
+                });
+            }};
 }
