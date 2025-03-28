@@ -1,20 +1,43 @@
-.PHONY: all clean
+ifeq ($(origin LDFLAGS), default)
+	LDFLAGS = -lstdc++
+endif
 
-all: build build/LogPass.so build/main_opt DefUseGraph.png
+CFLAGS ?= -O0
+CXXFLAGS ?= `llvm-config-18 --cxxflags`
+LLVM_FLAGS ?= `llvm-config-18 --cxxflags --ldflags --system-libs --libs core`
+OUT_O_DIR ?= build
+COMMONINC = -I./include
+SRC = ./source
 
-build/LogPass.so: LogPass.cpp
-	@clang -shared -fPIC LogPass.cpp -o build/LogPass.so `llvm-config --cxxflags --ldflags --system-libs --libs core`
+override CFLAGS += $(COMMONINC)
 
-build:
-	@mkdir build
+CSRC = main.c
+DEPS = $(CSRC:%.c=$(OUT_O_DIR)/%.d)
 
-build/main_opt: main.c build/LogPass.so
-	@clang -fpass-plugin=./build/LogPass.so -O1 main.c -o build/main_opt -lstdc++
+.PHONY: all
+all: $(DEPS) $(OUT_O_DIR)/LogPass.so $(OUT_O_DIR)/main
 
-DefUseGraph.png: build/DefUseGraph.dot
-	@dot -Tpng build/DefUseGraph.dot -o build/DefUseGraph.png
+$(OUT_O_DIR)/LogPass.so: $(SRC)/LogPass.cpp
+	clang -shared -fPIC $^ -o $@ $(LLVM_FLAGS)
 
+$(OUT_O_DIR)/logFunctions.o: $(SRC)/logFunctions.c
+	clang -c $^ -o $@ -fPIC $(CFLAGS)
+
+$(OUT_O_DIR)/main: $(OUT_O_DIR)/LogPass.so $(CSRC) $(OUT_O_DIR)/logFunctions.o
+	clang -O1 -disable-llvm-passes -fpass-plugin=$< $(CSRC) $(OUT_O_DIR)/logFunctions.o -o $@ $(LDFLAGS)
+
+$(DEPS): $(OUT_O_DIR)/%.d: %.c
+	@mkdir -p $(@D)
+	clang -E $< -MM -MT $(@:%.d=%) > $@
+
+.PHONY: graph
+graph:
+	dot -Tsvg DefUseGraph.dot -o $(OUT_O_DIR)/DefUseGraph.svg
+
+.PHONY: run
+run:
+	@$(OUT_O_DIR)/main
+
+.PHONY: clean
 clean:
-	@rm -rf build
-
-
+	rm -rf *.dot $(DEPS) $(OUT_O_DIR)

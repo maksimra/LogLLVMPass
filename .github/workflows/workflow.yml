@@ -1,0 +1,9 @@
+name: LogLLVMPass pre-commit and post-push
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+jobs:
