@@ -4,7 +4,7 @@ This program adds instrumentation to LLVM IR and generates a .png def-use graph.
 ## Requirements
 - *OC*: Linux
 - *Compiler*: Clang 18.1.3
-- *LLVM*: Version 18.1.3(built with RTTI support)
+- *LLVM*: Version 18.1.3 (built with RTTI support)
 ## Build
 (for the code in main.c)
 1) Clone the repository:
