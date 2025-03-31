@@ -5,6 +5,7 @@ endif
 CFLAGS ?= -O0
 CXXFLAGS ?= `llvm-config-18 --cxxflags`
 LLVM_FLAGS ?= `llvm-config-18 --cxxflags --ldflags --system-libs --libs core`
+LLVM_IR_FLAG = -S -emit-llvm
 OUT_O_DIR ?= build
 COMMONINC = -I./include
 SRC = ./source
@@ -29,6 +30,10 @@ $(OUT_O_DIR)/main: $(OUT_O_DIR)/LogPass.so $(CSRC) $(OUT_O_DIR)/logFunctions.o
 $(DEPS): $(OUT_O_DIR)/%.d: %.c
 	@mkdir -p $(@D)
 	clang -E $< -MM -MT $(@:%.d=%) > $@
+
+.PHONY: pure_llvm_ir
+pure_llvm_ir:
+	clang -O0 $(CSRC) $(LLVM_IR_FLAG) -o $(OUT_O_DIR)/main.ll
 
 .PHONY: graph
 graph:
