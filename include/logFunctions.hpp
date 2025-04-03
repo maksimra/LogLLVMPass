@@ -2,11 +2,12 @@
 
 #include <stdint.h>
 
-void logDefUseInt1   (const char *type, bool value);
-void logDefUseInt8   (const char *type, uint8_t value);
-void logDefUseInt16  (const char *type, uint16_t value);
-void logDefUseInt32  (const char *type, uint32_t value);
-void logDefUseInt64  (const char *type, uint64_t value);
-void logDefUseFloat  (const char *type, float value);
-void logDefUseDouble (const char *type, double value);
-void logDefUsePointer(const char *type, const void* value);
+void logDefUseInt1(bool value, const char *instName, ...);
+void logDefUseInt8(uint8_t value, const char *instName, ...);
+void logDefUseInt16(uint16_t value, const char *instName, ...);
+void logDefUseInt32(uint32_t value, const char *instName, ...);
+void logDefUseInt64(uint64_t value, const char *instName, ...);
+void logDefUseFloat(float value, const char *instName, ...);
+void logDefUseDouble(double value, const char *instName, ...);
+void logDefUsePointer(const void* value, const char *instName, ...);
+void logDefUseVoid(void* value, const char *instName, ...);

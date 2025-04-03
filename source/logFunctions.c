@@ -1,50 +1,426 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <stdarg.h>
+#include <string.h>
+#include <assert.h>
 
-#include "../include/logFunctions.hpp"
+#include "logFunctions.hpp"
 
-void logDefUseInt1(const char *type, bool value)
+#define MAX_NUMBER_INSTRUCTIONS 100000 // Пока не придумал, как без этого сделать
+
+static const char *DEF_INSTRUCTIONS[MAX_NUMBER_INSTRUCTIONS] = {};
+static size_t NUMBER_INSTRUCTIONS = 0;
+
+void logDefUseInt1(bool value, const char *instName, ...)
 {
-	printf("%s (i1): (as unsigned) %u, "
-		   "(as signed) %d\n", type, value, value);
+	assert(instName);
+	
+	DEF_INSTRUCTIONS[NUMBER_INSTRUCTIONS] = instName;
+
+	FILE* defUseFile = fopen("dot/DefUseGraph.dot", "a");
+	if (!defUseFile)
+	{
+		fprintf(stderr, "error open file\n");
+		return;
+	}
+	fprintf(defUseFile, " -> \"%s\"", instName);
+
+	FILE* defUseChain = fopen("DefUseChain.dot", "a"); //TODO: может с помощью флага управлять открытием файла
+	if (!defUseChain)
+	{
+		fprintf(stderr, "error open file\n");
+		return;
+	}
+
+	va_list args;
+	va_start(args, instName);
+
+	const char *operandInstr = NULL;
+	
+	while (operandInstr = va_arg(args, const char*))
+	{
+		for (int numberDefInst = 0; numberDefInst < NUMBER_INSTRUCTIONS; numberDefInst++)
+		{
+			if (strcmp(operandInstr, DEF_INSTRUCTIONS[numberDefInst]) == 0)
+				fprintf(defUseChain, "\n\"%s\" -> \"%s\";", operandInstr, instName);
+		}
+	}
+	va_end(args);
+	fclose(defUseChain);
+	NUMBER_INSTRUCTIONS++;
+	fclose(defUseFile);
+
+	FILE* runtimeValueFile = fopen("RuntimeValue.txt", "a");
+	fprintf(runtimeValueFile, "%s | VALUE = (as unsigned) %u or "
+		                      "(as signed) %d\n", instName, value, value);
+	fclose(runtimeValueFile); 
 }
 
-void logDefUseInt8(const char *type, uint8_t value)
+void logDefUseInt8(uint8_t value, const char *instName, ...)
 {
-	printf("%s (i8): (as unsigned) %hhu, "
-		   "(as signed) %hhd\n", type, value, value);
+	assert(instName);
+	
+	DEF_INSTRUCTIONS[NUMBER_INSTRUCTIONS] = instName;
+	fprintf(stderr, "number instr == %zu\n", NUMBER_INSTRUCTIONS);
+
+	FILE* defUseFile = fopen("DefUseGraph.dot", "a");
+	if (!defUseFile)
+	{
+		fprintf(stderr, "error open file\n");
+		return;
+	}
+	fprintf(defUseFile, " -> \"%s\"", instName);
+
+	FILE* defUseChain = fopen("DefUseChain.dot", "a"); //TODO: может с помощью флага управлять открытием файла
+	if (!defUseChain)
+	{
+		fprintf(stderr, "error open file\n");
+		return;
+	}
+
+	va_list args;
+	va_start(args, instName);
+
+	const char *operandInstr = NULL;
+	
+	while (operandInstr = va_arg(args, const char*))
+	{
+		for (int numberDefInst = 0; numberDefInst < NUMBER_INSTRUCTIONS; numberDefInst++)
+		{
+			if (strcmp(operandInstr, DEF_INSTRUCTIONS[numberDefInst]) == 0)
+				fprintf(defUseChain, "\n\"%s\" -> \"%s\";", operandInstr, instName);
+		}
+	}
+	va_end(args);
+	fclose(defUseChain);
+	NUMBER_INSTRUCTIONS++;
+	fclose(defUseFile);
+
+	FILE* runtimeValueFile = fopen("RuntimeValue.txt", "a");
+	fprintf(runtimeValueFile, "%s | VALUE = (as unsigned) %hhu or "
+		                      "(as signed) %hhd\n", instName, value, value);
+	fclose(runtimeValueFile); 
 }
 
-void logDefUseInt16(const char *type, uint16_t value)
+void logDefUseInt16(uint16_t value, const char *instName, ...)
 {
-	printf("%s (i16): (as unsigned) %hu, "
-		   "(as signed) %hd\n", type, value, value);
+	assert(instName);
+	
+	DEF_INSTRUCTIONS[NUMBER_INSTRUCTIONS] = instName;
+	fprintf(stderr, "number instr == %zu\n", NUMBER_INSTRUCTIONS);
+
+	FILE* defUseFile = fopen("DefUseGraph.dot", "a");
+	if (!defUseFile)
+	{
+		fprintf(stderr, "error open file\n");
+		return;
+	}
+	fprintf(defUseFile, " -> \"%s\"", instName);
+
+	FILE* defUseChain = fopen("DefUseChain.dot", "a"); //TODO: может с помощью флага управлять открытием файла
+	if (!defUseChain)
+	{
+		fprintf(stderr, "error open file\n");
+		return;
+	}
+
+	va_list args;
+	va_start(args, instName);
+
+	const char *operandInstr = NULL;
+	
+	while (operandInstr = va_arg(args, const char*))
+	{
+		for (int numberDefInst = 0; numberDefInst < NUMBER_INSTRUCTIONS; numberDefInst++)
+		{
+			if (strcmp(operandInstr, DEF_INSTRUCTIONS[numberDefInst]) == 0)
+				fprintf(defUseChain, "\n\"%s\" -> \"%s\";", operandInstr, instName);
+		}
+	}
+	va_end(args);
+	fclose(defUseChain);
+	NUMBER_INSTRUCTIONS++;
+	fclose(defUseFile);
+
+	FILE* runtimeValueFile = fopen("RuntimeValue.txt", "a");
+	fprintf(runtimeValueFile, "%s | VALUE = (as unsigned) %hu or "
+		"(as signed) %hd\n", instName, value, value);
+	fclose(runtimeValueFile); 
 }
 
-void logDefUseInt32(const char *type, uint32_t value)
+void logDefUseInt32(uint32_t value, const char *instName, ...)
 {
-	printf("%s (i32): (as unsigned) %u, "
-		   "(as signed) %d\n", type, value, value);
+	assert(instName);
+	
+	DEF_INSTRUCTIONS[NUMBER_INSTRUCTIONS] = instName;
+	fprintf(stderr, "number instr == %zu\n", NUMBER_INSTRUCTIONS);
+
+	FILE* defUseFile = fopen("DefUseGraph.dot", "a");
+	if (!defUseFile)
+	{
+		fprintf(stderr, "error open file\n");
+		return;
+	}
+	fprintf(defUseFile, " -> \"%s\"", instName);
+
+	FILE* defUseChain = fopen("DefUseChain.dot", "a"); //TODO: может с помощью флага управлять открытием файла
+	if (!defUseChain)
+	{
+		fprintf(stderr, "error open file\n");
+		return;
+	}
+
+	va_list args;
+	va_start(args, instName);
+
+	const char *operandInstr = NULL;
+	
+	while (operandInstr = va_arg(args, const char*))
+	{
+		for (int numberDefInst = 0; numberDefInst < NUMBER_INSTRUCTIONS; numberDefInst++)
+		{
+			if (strcmp(operandInstr, DEF_INSTRUCTIONS[numberDefInst]) == 0)
+				fprintf(defUseChain, "\n\"%s\" -> \"%s\";", operandInstr, instName);
+		}
+	}
+	va_end(args);
+	fclose(defUseChain);
+	NUMBER_INSTRUCTIONS++;
+	fclose(defUseFile);
+
+	FILE* runtimeValueFile = fopen("RuntimeValue.txt", "a");
+	fprintf(runtimeValueFile, "%s | VALUE = (as unsigned) %u or "
+		"(as signed) %d\n", instName, value, value);
+	fclose(runtimeValueFile); 
 }
 
-void logDefUseInt64(const char *type, uint64_t value)
+void logDefUseInt64(uint64_t value, const char *instName, ...)
 {
-	printf("%s (i64): (as unsigned) %lu, "
-		   "(as signed) %ld\n", type, value, value);
+	assert(instName);
+	
+	DEF_INSTRUCTIONS[NUMBER_INSTRUCTIONS] = instName;
+	fprintf(stderr, "number instr == %zu\n", NUMBER_INSTRUCTIONS);
+
+	FILE* defUseFile = fopen("DefUseGraph.dot", "a");
+	if (!defUseFile)
+	{
+		fprintf(stderr, "error open file\n");
+		return;
+	}
+	fprintf(defUseFile, " -> \"%s\"", instName);
+
+	FILE* defUseChain = fopen("DefUseChain.dot", "a"); //TODO: может с помощью флага управлять открытием файла
+	if (!defUseChain)
+	{
+		fprintf(stderr, "error open file\n");
+		return;
+	}
+
+	va_list args;
+	va_start(args, instName);
+
+	const char *operandInstr = NULL;
+	
+	while (operandInstr = va_arg(args, const char*))
+	{
+		for (int numberDefInst = 0; numberDefInst < NUMBER_INSTRUCTIONS; numberDefInst++)
+		{
+			if (strcmp(operandInstr, DEF_INSTRUCTIONS[numberDefInst]) == 0)
+				fprintf(defUseChain, "\n\"%s\" -> \"%s\";", operandInstr, instName);
+		}
+	}
+	va_end(args);
+	fclose(defUseChain);
+	NUMBER_INSTRUCTIONS++;
+	fclose(defUseFile);
+
+	FILE* runtimeValueFile = fopen("RuntimeValue.txt", "a");
+	fprintf(runtimeValueFile, "%s | VALUE = (as unsigned) %lu or "
+		"(as signed) %ld\n", instName, value, value);
+	fclose(runtimeValueFile); 
 }
 
-void logDefUseFloat(const char *type, float value)
+void logDefUseFloat(float value, const char *instName, ...)
 {
-	printf("%s (float): %g\n", type, value);
+	assert(instName);
+	
+	DEF_INSTRUCTIONS[NUMBER_INSTRUCTIONS] = instName;
+	fprintf(stderr, "number instr == %zu\n", NUMBER_INSTRUCTIONS);
+
+	FILE* defUseFile = fopen("DefUseGraph.dot", "a");
+	if (!defUseFile)
+	{
+		fprintf(stderr, "error open file\n");
+		return;
+	}
+	fprintf(defUseFile, " -> \"%s\"", instName);
+
+	FILE* defUseChain = fopen("DefUseChain.dot", "a"); //TODO: может с помощью флага управлять открытием файла
+	if (!defUseChain)
+	{
+		fprintf(stderr, "error open file\n");
+		return;
+	}
+
+	va_list args;
+	va_start(args, instName);
+
+	const char *operandInstr = NULL;
+	
+	while (operandInstr = va_arg(args, const char*))
+	{
+		for (int numberDefInst = 0; numberDefInst < NUMBER_INSTRUCTIONS; numberDefInst++)
+		{
+			if (strcmp(operandInstr, DEF_INSTRUCTIONS[numberDefInst]) == 0)
+				fprintf(defUseChain, "\n\"%s\" -> \"%s\";", operandInstr, instName);
+		}
+	}
+	va_end(args);
+	fclose(defUseChain);
+	NUMBER_INSTRUCTIONS++;
+	fclose(defUseFile);
+
+	FILE* runtimeValueFile = fopen("RuntimeValue.txt", "a");
+	fprintf(runtimeValueFile, "%s | VALUE = %g\n", instName, value);
+	fclose(runtimeValueFile); 
 }
 
-void logDefUseDouble(const char *type, double value)
+void logDefUseDouble(double value, const char *instName, ...)
 {
-	printf("%s (double): %g\n", type, value);
+	assert(instName);
+	
+	fprintf(stderr, "ЛОГГИРУЮ ДАБЛ\n");
+	DEF_INSTRUCTIONS[NUMBER_INSTRUCTIONS] = instName;
+	fprintf(stderr, "number instr == %zu\n", NUMBER_INSTRUCTIONS);
+
+	FILE* defUseFile = fopen("DefUseGraph.dot", "a");
+	if (!defUseFile)
+	{
+		fprintf(stderr, "error open file\n");
+		return;
+	}
+	fprintf(defUseFile, " -> \"%s\"", instName);
+
+	FILE* defUseChain = fopen("DefUseChain.dot", "a"); //TODO: может с помощью флага управлять открытием файла
+	if (!defUseChain)
+	{
+		fprintf(stderr, "error open file\n");
+		return;
+	}
+
+	va_list args;
+	va_start(args, instName);
+
+	const char *operandInstr = NULL;
+	
+	while (operandInstr = va_arg(args, const char*))
+	{
+		for (int numberDefInst = 0; numberDefInst < NUMBER_INSTRUCTIONS; numberDefInst++)
+		{
+			if (strcmp(operandInstr, DEF_INSTRUCTIONS[numberDefInst]) == 0)
+				fprintf(defUseChain, "\n\"%s\" -> \"%s\";", operandInstr, instName);
+		}
+	}
+	va_end(args);
+	fclose(defUseChain);
+	NUMBER_INSTRUCTIONS++;
+	fclose(defUseFile);
+
+	FILE* runtimeValueFile = fopen("RuntimeValue.txt", "a");
+	fprintf(runtimeValueFile, "%s | VALUE = %g\n", instName, value);
+	fclose(runtimeValueFile); 
+
+	fprintf(stderr, "PERVII: %s\n", DEF_INSTRUCTIONS[0]);
 }
 
-void logDefUsePointer(const char *type, const void* value)
+void logDefUsePointer(const void* value, const char *instName, ...)
 {
-	printf("%s (pointer): %p\n", type, value);
+	assert(instName);
+
+	DEF_INSTRUCTIONS[NUMBER_INSTRUCTIONS] = instName;
+	fprintf(stderr, "number instr == %zu\n", NUMBER_INSTRUCTIONS);
+
+	FILE* defUseFile = fopen("DefUseGraph.dot", "a");
+	if (!defUseFile)
+	{
+		fprintf(stderr, "error open file\n");
+		return;
+	}
+	fprintf(defUseFile, " -> \"%s\"", instName);
+
+	FILE* defUseChain = fopen("DefUseChain.dot", "a"); //TODO: может с помощью флага управлять открытием файла
+	if (!defUseChain)
+	{
+		fprintf(stderr, "error open file\n");
+		return;
+	}
+
+	va_list args;
+	va_start(args, instName);
+
+	const char *operandInstr = NULL;
+	
+	while (operandInstr = va_arg(args, const char*))
+	{
+		for (int numberDefInst = 0; numberDefInst < NUMBER_INSTRUCTIONS; numberDefInst++)
+		{
+			if (strcmp(operandInstr, DEF_INSTRUCTIONS[numberDefInst]) == 0)
+				fprintf(defUseChain, "\n\"%s\" -> \"%s\";", operandInstr, instName);
+		}
+	}
+	va_end(args);
+	fclose(defUseChain);
+
+	NUMBER_INSTRUCTIONS++;
+	fclose(defUseFile);
+
+	FILE* runtimeValueFile = fopen("RuntimeValue.txt", "a");
+	fprintf(runtimeValueFile, "%s | VALUE = %p\n", instName, value);
+	fclose(runtimeValueFile); 
+}
+
+void logDefUseVoid(void* value, const char *instName, ...)
+{
+	DEF_INSTRUCTIONS[NUMBER_INSTRUCTIONS] = instName;
+	fprintf(stderr, "number instr == %zu\n", NUMBER_INSTRUCTIONS);
+	fprintf(stderr, "VOID: %s\n", instName);
+
+	FILE* defUseFile = fopen("DefUseGraph.dot", "a");
+	if (!defUseFile)
+	{
+		fprintf(stderr, "error open file\n");
+		return;
+	}
+	fprintf(defUseFile, " -> \"%s\"", instName);
+
+	FILE* defUseChain = fopen("DefUseChain.dot", "a"); //TODO: может с помощью флага управлять открытием файла
+	if (!defUseChain)
+	{
+		fprintf(stderr, "error open file\n");
+		return;
+	}
+
+	va_list args;
+	va_start(args, instName);
+
+	const char *operandInstr = NULL;
+	
+	while (operandInstr = va_arg(args, const char*))
+	{
+		for (int numberDefInst = 0; numberDefInst < NUMBER_INSTRUCTIONS; numberDefInst++)
+		{
+			if (strcmp(operandInstr, DEF_INSTRUCTIONS[numberDefInst]) == 0)
+				fprintf(defUseChain, "\n\"%s\" -> \"%s\";", operandInstr, instName);
+		}
+	}
+	va_end(args);
+	fclose(defUseChain);
+
+	NUMBER_INSTRUCTIONS++;
+	fclose(defUseFile);
+
+	FILE* runtimeValueFile = fopen("RuntimeValue.txt", "a");
+	fprintf(runtimeValueFile, "%s | VALUE = %p\n", instName, value);
+	fclose(runtimeValueFile); 
 }

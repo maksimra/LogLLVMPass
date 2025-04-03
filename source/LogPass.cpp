@@ -1,5 +1,6 @@
 #include <fstream>
 #include <iostream>
+#include <vector>
 
 #include "llvm/Analysis/CFG.h"
 #include "llvm/IR/Dominators.h"
@@ -14,7 +15,8 @@ enum LogError
 {
     ERROR_OK = 0,
     ERROR_UNKNOW_TYPE = 1,
-    ERROR_OPEN_FILE = 2
+    ERROR_OPEN_FILE = 2,
+    ERROR_INVALID_TYPE = 3
 };
 
 enum LogFunctionNumber
@@ -28,6 +30,7 @@ enum LogFunctionNumber
     LOG_FLOAT = 6,
     LOG_DOUBLE = 7,
     LOG_POINTER = 8,
+    LOG_VOID = 9,
     NUMBER_LOG_FUNCTIONS
 };
 
@@ -56,6 +59,8 @@ const char *get_error_msg(LogError error)
         return "Unknow operand type.";
     case ERROR_OPEN_FILE:
         return "Cannot open file.";
+    case ERROR_INVALID_TYPE:
+        return "Invalid type.";
     default:
         return "Unknow error type.";
     }
@@ -78,128 +83,111 @@ class DefUseInstrumentationPass : public llvm::PassInfoMixin<DefUseInstrumentati
                                                                     {LOG_INT64, "logDefUseInt64"},
                                                                     {LOG_FLOAT, "logDefUseFloat"},
                                                                     {LOG_DOUBLE, "logDefUseDouble"},
-                                                                    {LOG_POINTER, "logDefUsePointer"}};
+                                                                    {LOG_POINTER, "logDefUsePointer"},
+                                                                    {LOG_VOID, "logDefUseVoid"}};
 
   public:
     llvm::PreservedAnalyses run(llvm::Function &F, llvm::FunctionAnalysisManager &AM)
     {
-        llvm::errs() << "Running YourPass on function: " << F.getName() << "\n";
         std::string funcName = F.getName().str();
         if (funcName.find("logDefUse") != std::string::npos)
         {
             return llvm::PreservedAnalyses::all();
         }
 
-        loggingPass(F);
-
-        LogError error = buildDefUseGraph(F);
+        LogError error = loggingPass(F);
         if (error)
             print_error(error);
 
-        return llvm::PreservedAnalyses::none();
+        return llvm::PreservedAnalyses::all();
     }
 
   private:
-    static void loggingPass(llvm::Function &F)
+    static llvm::Value *getInstrOperand(llvm::Instruction *I)
     {
-        for (auto &BB : F)
-        {
-            for (auto &I : BB)
-            {
-                LogError error = ERROR_OK;
-                if (auto *storeInst = llvm::dyn_cast<llvm::StoreInst>(&I))
-                {
-                    llvm::IRBuilder<> builder(storeInst);
-                    llvm::Value *valueToLog = storeInst->getValueOperand();
-                    error = insertLoggingCall(builder, valueToLog, "def");
-                }
-                else if (auto *loadInst = llvm::dyn_cast<llvm::LoadInst>(&I))
-                {
-                    llvm::IRBuilder<> builder(loadInst);
-                    llvm::Value *pointerOperand = loadInst->getPointerOperand();
-                    llvm::Value *valueToLog = builder.CreateLoad(loadInst->getType(), pointerOperand);
-                    error = insertLoggingCall(builder, valueToLog, "use");
-                }
+        if (I->isTerminator())
+            return nullptr;
 
-                if (error)
-                {
-                    print_error(error);
-                    return;
-                }
-            }
-        }
+        if (auto *binOp = llvm::dyn_cast<llvm::BinaryOperator>(I))
+            return binOp;
+        else if (auto *load = llvm::dyn_cast<llvm::LoadInst>(I))
+            return load;
+
+        return nullptr;
     }
 
-    static LogError buildDefUseGraph(llvm::Function &F)
+    static LogError loggingPass(llvm::Function &F)
     {
-        std::ofstream dotFile("DefUseGraph.dot");
+        LogError error = ERROR_OK;
+
+        std::ofstream dotFile("dot/DefUseGraph.dot");
         if (!dotFile.is_open())
         {
             std::cerr << "Cannot open dotFile.\n";
             return ERROR_OPEN_FILE;
         }
-        dotFile << "digraph G {\n";
+        dotFile << "digraph G {\n"
+                << "rankdir = LR;\n"
+                << "{ rank = same;\n\"CFG\""; // graph head
 
+        std::vector<llvm::Instruction *> instructions;
         for (auto &BB : F)
         {
             for (auto &I : BB)
             {
-                if (auto *storeInst = llvm::dyn_cast<llvm::StoreInst>(&I))
+                if (!shouldSkipInstruction(&I))
+                    instructions.push_back(&I);
+            }
+        }
+
+        for (auto I : instructions)
+        {
+            std::vector<llvm::Instruction *> defOperands;
+            for (llvm::Use &U : I->operands())
+            {
+                llvm::Value *value = U.get();
+                if (llvm::Instruction *sourceInst = llvm::dyn_cast<llvm::Instruction>(value))
                 {
-                    llvm::Value *value = storeInst->getValueOperand();
-                    llvm::Value *pointer = storeInst->getPointerOperand();
-
-                    std::string valueStr = getStrValue(value);
-                    std::string pointerStr = getStrValue(pointer);
-
-                    dotFile << "\"val: " << valueStr << "\" -> \"Pointer " << pointerStr << "\" [label=\"store\"];\n";
+                    defOperands.push_back(sourceInst);
                 }
-                else if (auto *loadInst = llvm::dyn_cast<llvm::LoadInst>(&I))
-                {
-                    llvm::Value *pointer = loadInst->getPointerOperand();
-                    std::string pointerStr = getStrValue(pointer);
+            }
 
-                    dotFile << "\"Pointer " << pointerStr << "\" -> \"Load " << loadInst << "\" [label=\"use\"];\n";
+            llvm::IRBuilder<> builder(I);
+            builder.SetInsertPoint(I->getNextNode()); // for insert after "I"
+            llvm::Value *computedValue = I;
+            error = insertLoggingCall(builder, *I, computedValue, defOperands);
+
+            if (error)
+                return error;
+        }
+
+        return ERROR_OK;
+    }
+
+    static bool shouldSkipInstruction(llvm::Instruction *I)
+    {
+        if (I->isTerminator())
+        {
+            return true;
+        }
+        else if (auto *CI = llvm::dyn_cast<llvm::CallInst>(I))
+        {
+            if (auto *F = CI->getCalledFunction())
+            {
+                llvm::Intrinsic::ID ID = (llvm::Intrinsic::ID)F->getIntrinsicID();
+                if (ID == llvm::Intrinsic::lifetime_start || ID == llvm::Intrinsic::lifetime_end)
+                {
+                    return true;
                 }
             }
         }
 
-        dotFile << "}\n";
-        dotFile.close();
-        return ERROR_OK;
+        return false;
     }
 
-    static std::string getStrValue(llvm::Value *value)
+    static LogError insertLoggingCall(llvm::IRBuilder<> &builder, llvm::Instruction &I, llvm::Value *valueToLog,
+                                      const std::vector<llvm::Instruction *> &defOperands)
     {
-        if (auto *constantInt = llvm::dyn_cast<llvm::ConstantInt>(value))
-            return std::to_string(constantInt->getZExtValue());
-
-        if (auto *constantFP = llvm::dyn_cast<llvm::ConstantFP>(value))
-            return std::to_string(constantFP->getValueAPF().convertToDouble());
-
-        if (value->getType()->isPointerTy())
-        {
-            if (auto *globalVar = llvm::dyn_cast<llvm::GlobalVariable>(value))
-                return std::string("0x") + std::to_string(reinterpret_cast<uintptr_t>(globalVar));
-
-            if (auto *constantExpr = llvm::dyn_cast<llvm::ConstantExpr>(value))
-                return std::string("0x") + std::to_string(reinterpret_cast<uintptr_t>(constantExpr));
-
-            if (auto *allocaInst = llvm::dyn_cast<llvm::AllocaInst>(value))
-                return std::string("0x") + std::to_string(reinterpret_cast<uintptr_t>(allocaInst));
-
-            return std::string("pointer");
-        }
-
-        if (auto *tempVal = llvm::dyn_cast<llvm::Instruction>(value))
-            return std::string("temp_value");
-
-        return std::string("error_value");
-    }
-
-    static LogError insertLoggingCall(llvm::IRBuilder<> &builder, llvm::Value *valueToLog, const std::string &type)
-    {
-        llvm::Module *M = builder.GetInsertBlock()->getModule();
         llvm::Type *valueType = valueToLog->getType();
 
         if (valueType->isStructTy())
@@ -208,7 +196,7 @@ class DefUseInstrumentationPass : public llvm::PassInfoMixin<DefUseInstrumentati
             for (unsigned elem_number = 0; elem_number < structTy->getNumElements(); ++elem_number)
             {
                 llvm::Value *field = builder.CreateExtractValue(valueToLog, {elem_number});
-                insertLoggingCall(builder, field, type + ".field" + std::to_string(elem_number));
+                insertLoggingCall(builder, I, field, defOperands);
             }
             return ERROR_OK;
         }
@@ -218,7 +206,7 @@ class DefUseInstrumentationPass : public llvm::PassInfoMixin<DefUseInstrumentati
             for (unsigned elem_number = 0; elem_number < arrayTy->getNumElements(); ++elem_number)
             {
                 llvm::Value *element = builder.CreateExtractValue(valueToLog, {elem_number});
-                insertLoggingCall(builder, element, type + ".element" + std::to_string(elem_number));
+                insertLoggingCall(builder, I, element, defOperands);
             }
             return ERROR_OK;
         }
@@ -226,14 +214,50 @@ class DefUseInstrumentationPass : public llvm::PassInfoMixin<DefUseInstrumentati
         LogFunctionNumber functionNum = getLogFuncNum(valueType);
         if (functionNum == LOG_UNKNOW)
             return ERROR_UNKNOW_TYPE;
+        if (functionNum == LOG_VOID)
+        {
+            valueType = llvm::PointerType::getUnqual(builder.getContext()); // ptr null
+            valueToLog = llvm::ConstantPointerNull::get(llvm::dyn_cast<llvm::PointerType>(valueType));
+        }
 
-        llvm::FunctionCallee logFunc = M->getOrInsertFunction(
-            FUNCTIONS[functionNum].func_name, llvm::Type::getVoidTy(builder.getContext()),
-            llvm::PointerType::getUnqual(llvm::Type::getInt8Ty(builder.getContext())), valueType);
+        llvm::FunctionType *funcType = llvm::FunctionType::get(
+            llvm::Type::getVoidTy(builder.getContext()),
+            {valueType, llvm::PointerType::getUnqual(llvm::Type::getInt8Ty(builder.getContext()))},
+            true // varargs
+        );
 
-        builder.CreateCall(logFunc, {builder.CreateGlobalStringPtr(type), valueToLog});
+        llvm::Module *M = builder.GetInsertBlock()->getModule();
+        llvm::FunctionCallee logFunc = M->getOrInsertFunction(FUNCTIONS[functionNum].func_name, funcType);
+
+        std::string instructionText;
+        llvm::raw_string_ostream ostream(instructionText);
+        I.print(ostream);
+
+        std::vector<llvm::Value *> args;
+        fillVectorArguments(builder, args, valueToLog, instructionText, defOperands);
+
+        builder.CreateCall(funcType, logFunc.getCallee(), args);
 
         return ERROR_OK;
+    }
+
+    static void fillVectorArguments(llvm::IRBuilder<> &builder, std::vector<llvm::Value *> &args,
+                                    llvm::Value *valueToLog, const std::string &instrText,
+                                    const std::vector<llvm::Instruction *> &defOperands)
+    {
+        args.push_back(valueToLog);
+        args.push_back(builder.CreateGlobalStringPtr(instrText));
+
+        for (llvm::Instruction *instr : defOperands)
+        {
+            std::string defOperandsText;
+            llvm::raw_string_ostream rso(defOperandsText);
+            instr->print(rso);
+            rso.flush();
+
+            args.push_back(builder.CreateGlobalStringPtr(defOperandsText));
+        }
+        args.push_back(llvm::ConstantPointerNull::get(llvm::PointerType::getUnqual(builder.getContext())));
     }
 
     static LogFunctionNumber getLogFuncNum(llvm::Type *type)
@@ -268,6 +292,10 @@ class DefUseInstrumentationPass : public llvm::PassInfoMixin<DefUseInstrumentati
         else if (type->isPointerTy())
         {
             return LOG_POINTER;
+        }
+        else if (type->isVoidTy())
+        {
+            return LOG_VOID;
         }
         else
         {

@@ -25,7 +25,7 @@ $(OUT_O_DIR)/logFunctions.o: $(SRC)/logFunctions.c
 	clang -c $^ -o $@ -fPIC $(CFLAGS)
 
 $(OUT_O_DIR)/main: $(OUT_O_DIR)/LogPass.so $(CSRC) $(OUT_O_DIR)/logFunctions.o
-	clang -O1 -disable-llvm-passes -fpass-plugin=$< $(CSRC) $(OUT_O_DIR)/logFunctions.o -o $@ $(LDFLAGS)
+	clang -O1 -fpass-plugin=$< $(CSRC) $(OUT_O_DIR)/logFunctions.o -o $@ $(LDFLAGS)
 
 $(DEPS): $(OUT_O_DIR)/%.d: %.c
 	@mkdir -p $(@D)
@@ -35,14 +35,21 @@ $(DEPS): $(OUT_O_DIR)/%.d: %.c
 pure_llvm_ir:
 	clang -O0 $(CSRC) $(LLVM_IR_FLAG) -o $(OUT_O_DIR)/main.ll
 
+.PHONY: log_llvm_ir
+log_llvm_ir: $(OUT_O_DIR)/LogPass.so $(OUT_O_DIR)/logFunctions.o
+	clang -O1 -fpass-plugin=$< $(LLVM_IR_FLAG) $(CSRC) -o $(OUT_O_DIR)/main_log.ll 
+
 .PHONY: graph
 graph:
 	dot -Tsvg DefUseGraph.dot -o $(OUT_O_DIR)/DefUseGraph.svg
 
 .PHONY: run
 run:
+	@rm RuntimeValue.txt # пока костыльно
 	@$(OUT_O_DIR)/main
 
 .PHONY: clean
 clean:
 	rm -rf *.dot $(DEPS) $(OUT_O_DIR)
+
+include $(DEPS)
