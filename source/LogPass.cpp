@@ -11,27 +11,14 @@
 #include "llvm/Passes/PassPlugin.h"
 #include "llvm/Support/raw_ostream.h"
 
+#include "logFunctions.h"
+
 enum LogError
 {
     ERROR_OK = 0,
     ERROR_UNKNOW_TYPE = 1,
     ERROR_OPEN_FILE = 2,
     ERROR_INVALID_TYPE = 3
-};
-
-enum LogFunctionNumber
-{
-    LOG_UNKNOW = 0,
-    LOG_INT1 = 1,
-    LOG_INT8 = 2,
-    LOG_INT16 = 3,
-    LOG_INT32 = 4,
-    LOG_INT64 = 5,
-    LOG_FLOAT = 6,
-    LOG_DOUBLE = 7,
-    LOG_POINTER = 8,
-    LOG_VOID = 9,
-    NUMBER_LOG_FUNCTIONS
 };
 
 enum LogIntType
@@ -98,29 +85,49 @@ class DefUseInstrumentationPass : public llvm::PassInfoMixin<DefUseInstrumentati
         LogError error = loggingPass(F);
         if (error)
             print_error(error);
+        
+        if (funcName == "main")
+            insertInitAndFinishCall(F);
 
         return llvm::PreservedAnalyses::all();
     }
 
   private:
-    static llvm::Value *getInstrOperand(llvm::Instruction *I)
+    static void insertInitAndFinishCall(llvm::Function &mainF)
     {
-        if (I->isTerminator())
-            return nullptr;
+        llvm::Function::iterator BB = mainF.begin();
+        llvm::BasicBlock::iterator firstInstr = BB->begin();
+        
+        llvm::IRBuilder<> builder(&*firstInstr);
+        
+        llvm::LLVMContext &context = mainF.getContext();
+        llvm::Module *M = mainF.getParent();
 
-        if (auto *binOp = llvm::dyn_cast<llvm::BinaryOperator>(I))
-            return binOp;
-        else if (auto *load = llvm::dyn_cast<llvm::LoadInst>(I))
-            return load;
 
-        return nullptr;
+        llvm::FunctionType *functionsType = llvm::FunctionType::get(
+            llvm::Type::getVoidTy(context),
+            false
+        );
+
+        llvm::FunctionCallee initFunc = M->getOrInsertFunction("logInit", functionsType);
+        builder.CreateCall(functionsType, initFunc.getCallee());
+
+        llvm::FunctionCallee finishFunc = M->getOrInsertFunction("logFinish", functionsType);
+        for (llvm::BasicBlock &block : mainF)
+        {
+            if (llvm::ReturnInst *ret = llvm::dyn_cast<llvm::ReturnInst>(block.getTerminator())) // would we process exit()?
+            {
+                builder.SetInsertPoint(ret);
+                builder.CreateCall(functionsType, finishFunc.getCallee());
+            }
+        }
     }
 
     static LogError loggingPass(llvm::Function &F)
     {
         LogError error = ERROR_OK;
 
-        std::ofstream dotFile("dot/DefUseGraph.dot");
+        std::ofstream dotFile("dot/ControlFlow.dot");
         if (!dotFile.is_open())
         {
             std::cerr << "Cannot open dotFile.\n";
@@ -128,7 +135,7 @@ class DefUseInstrumentationPass : public llvm::PassInfoMixin<DefUseInstrumentati
         }
         dotFile << "digraph G {\n"
                 << "rankdir = LR;\n"
-                << "{ rank = same;\n\"CFG\""; // graph head
+                << "{rank = same;\n\"CFG\""; // graph head
 
         std::vector<llvm::Instruction *> instructions;
         for (auto &BB : F)
