@@ -4,10 +4,10 @@
 
 enum LogFuncError
 {
-	LOG_FUNC_ERROR_OK = 0,
-	LOG_FUNC_ERROR_CALLOC = 1,
-	LOG_FUNC_ERROR_FOPEN = 2,
-	LOG_FUNC_ERROR_STACK = 3,
+    LOG_FUNC_ERROR_OK = 0,
+    LOG_FUNC_ERROR_CALLOC = 1,
+    LOG_FUNC_ERROR_FOPEN = 2,
+    LOG_FUNC_ERROR_STACK = 3,
     LOG_FUNC_ERROR_TYPE = 4
 };
 
@@ -33,13 +33,12 @@ void logDefUseInt32(uint32_t value, const char *instName, ...);
 void logDefUseInt64(uint64_t value, const char *instName, ...);
 void logDefUseFloat(float value, const char *instName, ...);
 void logDefUseDouble(double value, const char *instName, ...);
-void logDefUsePointer(const void* value, const char *instName, ...);
-void logDefUseVoid(const void* value, const char *instName, ...);
+void logDefUsePointer(const void *value, const char *instName, ...);
+void logDefUseVoid(const void *value, const char *instName, ...);
 void logFuncPrintError(enum LogFuncError error);
-const char* logFuncGetError(enum LogFuncError error);
+const char *logFuncGetError(enum LogFuncError error);
 void logInit();
 void logFinish();
-void processOperands(const char* instName, void* value, enum LogFunctionNumber valueType, va_list* args);
-void printDefUseValue(void* value, enum LogFunctionNumber valueType);
-void pushInstruction(const char* instName, enum LogFunctionNumber valueType, void* value);
-
+void processOperands(const char *instName, void *value, enum LogFunctionNumber valueType, va_list *args);
+void printDefUseValue(void *value, enum LogFunctionNumber valueType);
+void pushInstruction(const char *instName, enum LogFunctionNumber valueType, void *value);

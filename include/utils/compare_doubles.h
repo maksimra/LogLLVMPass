@@ -2,4 +2,4 @@
 
 #include <stdbool.h>
 
-int compare_doubles (double a, double b);
+int compare_doubles(double a, double b);

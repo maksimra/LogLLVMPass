@@ -19,11 +19,25 @@ cd LogLLVMPass
 ```
 make
 ```
+- To run:
+```
+make run
+```
+- To build def-use graph (only after run):
+```
+make graph
+```
+- To build pure LLVM IR
+```
+make pure_llvm_ir
+```
+- To build instrumentated LLVM IR (only after compilation)
+```
+make instr_llvm_ir
+```
 
 ***
 
 After completing these steps, you will have:
 
-- An executable file: build/main_opt
-
-- A def-use graph: build/DefUseGraph.png
+- The def-use graph: build/ResultGraph.svg

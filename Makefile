@@ -7,6 +7,7 @@ CXXFLAGS ?= `llvm-config-18 --cxxflags`
 LLVM_FLAGS ?= `llvm-config-18 --cxxflags --ldflags --system-libs --libs core`
 LLVM_IR_FLAG = -S -emit-llvm
 OUT_O_DIR ?= build
+DOT_FOLDER := dot
 COMMONINC = -I./include -I./include/utils
 SRC = ./source
 
@@ -21,7 +22,7 @@ DEPS = $(CSRC:%.c=$(OUT_O_DIR)/%.d)
 all: $(DEPS) $(OUT_O_DIR)/LogPass.so $(OUT_O_DIR)/main
 
 $(OUT_O_DIR)/LogPass.so: $(SRC)/LogPass.cpp
-	echo "hello $(FUNCTION_OBJ)"
+	@mkdir -p $(DOT_FOLDER)
 	clang -shared -fPIC $^ -o $@ $(LLVM_FLAGS) $(COMMONINC)
 
 $(OUT_O_DIR)/%.o: $(SRC)/%.c
@@ -33,7 +34,7 @@ $(OUT_O_DIR)/%.o: $(SRC)/utils/%.c
 $(OUT_O_DIR)/main: $(OUT_O_DIR)/LogPass.so $(CSRC) $(FUNCTION_OBJ)
 	clang -O1 -fpass-plugin=$< $(CSRC) $(FUNCTION_OBJ) -o $@ $(LDFLAGS)
 
-$(DEPS): $(OUT_O_DIR)/%.d: %.c # TODO: не все зависимости обрабатываю
+$(DEPS): $(OUT_O_DIR)/%.d: %.c # TODO: не все зависимости обрабатываю мб
 	@mkdir -p $(@D) 
 	clang -E $< -MM -MT $(@:%.d=%) > $@
 
@@ -41,7 +42,7 @@ $(DEPS): $(OUT_O_DIR)/%.d: %.c # TODO: не все зависимости обр
 pure_llvm_ir:
 	clang -O0 $(CSRC) $(LLVM_IR_FLAG) -o $(OUT_O_DIR)/main.ll
 
-.PHONY: log_llvm_ir
+.PHONY: instr_llvm_ir
 log_llvm_ir: $(OUT_O_DIR)/LogPass.so $(OUT_O_DIR)/logFunctions.o
 	clang -O1 -fpass-plugin=$< $(LLVM_IR_FLAG) $(CSRC) -o $(OUT_O_DIR)/main_log.ll 
 
@@ -56,6 +57,6 @@ run:
 
 .PHONY: clean
 clean:
-	rm -rf *.dot $(DEPS) $(OUT_O_DIR)
+	rm -rf *.dot $(DEPS) $(OUT_O_DIR) $(DOT_FOLDER)
 
 include $(DEPS)

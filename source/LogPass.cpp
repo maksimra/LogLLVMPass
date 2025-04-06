@@ -85,7 +85,7 @@ class DefUseInstrumentationPass : public llvm::PassInfoMixin<DefUseInstrumentati
         LogError error = loggingPass(F);
         if (error)
             print_error(error);
-        
+
         if (funcName == "main")
             insertInitAndFinishCall(F);
 
@@ -97,17 +97,13 @@ class DefUseInstrumentationPass : public llvm::PassInfoMixin<DefUseInstrumentati
     {
         llvm::Function::iterator BB = mainF.begin();
         llvm::BasicBlock::iterator firstInstr = BB->begin();
-        
+
         llvm::IRBuilder<> builder(&*firstInstr);
-        
+
         llvm::LLVMContext &context = mainF.getContext();
         llvm::Module *M = mainF.getParent();
 
-
-        llvm::FunctionType *functionsType = llvm::FunctionType::get(
-            llvm::Type::getVoidTy(context),
-            false
-        );
+        llvm::FunctionType *functionsType = llvm::FunctionType::get(llvm::Type::getVoidTy(context), false);
 
         llvm::FunctionCallee initFunc = M->getOrInsertFunction("logInit", functionsType);
         builder.CreateCall(functionsType, initFunc.getCallee());
@@ -115,7 +111,8 @@ class DefUseInstrumentationPass : public llvm::PassInfoMixin<DefUseInstrumentati
         llvm::FunctionCallee finishFunc = M->getOrInsertFunction("logFinish", functionsType);
         for (llvm::BasicBlock &block : mainF)
         {
-            if (llvm::ReturnInst *ret = llvm::dyn_cast<llvm::ReturnInst>(block.getTerminator())) // would we process exit()?
+            if (llvm::ReturnInst *ret =
+                    llvm::dyn_cast<llvm::ReturnInst>(block.getTerminator())) // would we process exit()?
             {
                 builder.SetInsertPoint(ret);
                 builder.CreateCall(functionsType, finishFunc.getCallee());
