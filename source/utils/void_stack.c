@@ -26,6 +26,7 @@ const uint32_t hash_seed = 0xABFDDCAE;
 
 void stack_set_log_file(FILE *file)
 {
+
     log_file = file;
 }
 

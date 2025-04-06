@@ -3,18 +3,15 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-void f()
+void f(int x)
 {
-	int x = 67;
-	printf("%d\n", x);
-	return;
+	if (x)
+		f(x - 1);
 }
 
 int main()
 {   
-	double x = 85;
-	x += 56;
-	float y = 65;
-	f();
-	return y;
+	int x = 3;
+	f(x);
+	return 0;
 }

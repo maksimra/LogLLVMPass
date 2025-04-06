@@ -27,13 +27,19 @@ struct Instruction
     union Value value;
 };
 
+static FILE *logFile = NULL;
+
 static struct Stack *INSTR_STACK = NULL;
 static FILE *CONTROL_FLOW_FILE = NULL;
 static FILE *DEF_USE_FILE = NULL;
 
 void logInit()
 {
-    stack_set_log_file(stderr);
+	logFile = fopen("logFile.txt", "w");
+	if (!logFile)
+		fprintf(stderr, "cannot open log file.\n");
+
+    stack_set_log_file(logFile);
 
     INSTR_STACK = (struct Stack *)calloc(1, sizeof(struct Stack));
     if (!INSTR_STACK)
@@ -72,6 +78,7 @@ void logFinish()
 
     fclose(CONTROL_FLOW_FILE);
     fclose(DEF_USE_FILE);
+	fclose(logFile);
 }
 
 void processOperands(const char *instName, void *value, enum LogFunctionNumber valueType, va_list *args)

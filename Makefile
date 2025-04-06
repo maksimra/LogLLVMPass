@@ -43,7 +43,7 @@ pure_llvm_ir:
 	clang -O0 $(CSRC) $(LLVM_IR_FLAG) -o $(OUT_O_DIR)/main.ll
 
 .PHONY: instr_llvm_ir
-log_llvm_ir: $(OUT_O_DIR)/LogPass.so $(OUT_O_DIR)/logFunctions.o
+instr_llvm_ir: $(OUT_O_DIR)/LogPass.so $(OUT_O_DIR)/logFunctions.o
 	clang -O1 -fpass-plugin=$< $(LLVM_IR_FLAG) $(CSRC) -o $(OUT_O_DIR)/main_log.ll 
 
 .PHONY: graph
