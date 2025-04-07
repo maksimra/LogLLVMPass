@@ -39,6 +39,7 @@ void logFuncPrintError(enum LogFuncError error);
 const char *logFuncGetError(enum LogFuncError error);
 void logInit();
 void logFinish();
+void beforeCall(const char *instName);
 void processOperands(const char *instName, void *value, enum LogFunctionNumber valueType, va_list *args);
 void printDefUseValue(void *value, enum LogFunctionNumber valueType);
 void pushInstruction(const char *instName, enum LogFunctionNumber valueType, void *value);

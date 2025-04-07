@@ -3,15 +3,16 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-void f(int x)
+int f(int x)
 {
 	if (x)
 		f(x - 1);
+	return 8;
 }
 
 int main()
 {   
 	int x = 3;
-	f(x);
+	x = f(x);
 	return 0;
 }

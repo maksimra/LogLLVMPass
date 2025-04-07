@@ -156,7 +156,11 @@ class DefUseInstrumentationPass : public llvm::PassInfoMixin<DefUseInstrumentati
                 }
             }
 
+            
             llvm::IRBuilder<> builder(I);
+            if (auto *callInst = llvm::dyn_cast<llvm::CallInst>(I))
+                insertInstrBeforeCall(builder, *I);
+
             builder.SetInsertPoint(I->getNextNode()); // for insert after "I"
             llvm::Value *computedValue = I;
             error = insertLoggingCall(builder, *I, computedValue, defOperands);
@@ -166,6 +170,24 @@ class DefUseInstrumentationPass : public llvm::PassInfoMixin<DefUseInstrumentati
         }
 
         return ERROR_OK;
+    }
+
+    static void insertInstrBeforeCall(llvm::IRBuilder<> &builder, llvm::Instruction &I)
+    {
+        llvm::FunctionType *funcType = llvm::FunctionType::get(
+            llvm::Type::getVoidTy(builder.getContext()),
+            {llvm::PointerType::getUnqual(llvm::Type::getInt8Ty(builder.getContext()))},
+            false
+        );
+
+        llvm::Module *M = builder.GetInsertBlock()->getModule();
+        llvm::FunctionCallee logBeforeCall = M->getOrInsertFunction("beforeCall", funcType);
+
+        std::string instructionName;
+        llvm::raw_string_ostream ostream(instructionName);
+        I.print(ostream);
+
+        builder.CreateCall(funcType, logBeforeCall.getCallee(), builder.CreateGlobalStringPtr(instructionName));
     }
 
     static bool shouldSkipInstruction(llvm::Instruction *I)

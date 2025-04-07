@@ -35,7 +35,7 @@ static FILE *DEF_USE_FILE = NULL;
 
 void logInit()
 {
-	logFile = fopen("logFile.txt", "w");
+	logFile = fopen("logs/logFile.txt", "w");
 	if (!logFile)
 		fprintf(stderr, "cannot open log file.\n");
 
@@ -180,6 +180,13 @@ void pushInstruction(const char *instName, enum LogFunctionNumber valueType, voi
         logFuncPrintError(LOG_FUNC_ERROR_STACK);
         exit(EXIT_FAILURE);
     }
+}
+
+void beforeCall(const char *instName)
+{
+    assert(instName);
+
+    fprintf(CONTROL_FLOW_FILE, " -> \"%s\"", instName);
 }
 
 void logDefUseInt1(bool value, const char *instName, ...)

@@ -1,6 +1,0 @@
-#!/usr/bin/env python3
-import sys
-import subprocess
-
-args = ['clang', '-fpass-plugin=LogPass.so', '-O1'] + sys.argv[1:]
-subprocess.run(args)

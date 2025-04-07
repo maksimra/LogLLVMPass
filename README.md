@@ -19,21 +19,13 @@ cd LogLLVMPass
 ```
 make
 ```
-- To run:
+- To run on your program:
 ```
-make run
+shlang <your_code.c> -o <executable>
 ```
 - To build def-use graph (only after run):
 ```
 make graph
-```
-- To build pure LLVM IR
-```
-make pure_llvm_ir
-```
-- To build instrumentated LLVM IR (only after compilation)
-```
-make instr_llvm_ir
 ```
 
 ***
