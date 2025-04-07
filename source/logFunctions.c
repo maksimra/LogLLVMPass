@@ -85,7 +85,7 @@ void processOperands(const char *instName, void *value, enum LogFunctionNumber v
 {
     const char *operandInstr = NULL;
 
-    while (operandInstr = va_arg(*args, const char *))
+    while ((operandInstr = va_arg(*args, const char *)))
     {
         for (int numberDefInstr = 0; numberDefInstr < INSTR_STACK->size; numberDefInstr++)
         {

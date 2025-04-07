@@ -18,7 +18,7 @@ FUNCTION_OBJ = $(FUNCTION_SRC:%.c=$(OUT_O_DIR)/%.o)
 .PHONY: all
 all: $(OUT_O_DIR)/LogPass.so $(DOT_FOLDER)
 
-$(OUT_O_DIR)/LogPass.so: $(SRC)/LogPass.cpp $(FUNCTION_OBJ)
+$(OUT_O_DIR)/LogPass.so: $(FUNCTION_OBJ) $(SRC)/LogPass.cpp
 	clang -shared -fPIC $^ -o $@ $(LLVM_FLAGS) $(COMMONINC)
 
 $(OUT_O_DIR)/%.o: $(SRC)/%.c $(OUT_O_DIR)
