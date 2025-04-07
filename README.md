@@ -23,9 +23,13 @@ make
 ```
 chmod +x shlang
 ```
-5) To run on your program:
+5) To compile your program:
 ```
 ./shlang <your_code.c> -o <executable>
+```
+6)
+```
+./<executable>
 ```
 6) To build def-use graph:
 ```

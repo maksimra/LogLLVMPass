@@ -37,7 +37,10 @@ void logInit()
 {
 	logFile = fopen("logs/logFile.txt", "w");
 	if (!logFile)
+    {
 		fprintf(stderr, "cannot open log file.\n");
+        logFile = stderr;
+    }
 
     stack_set_log_file(logFile);
 
