@@ -3,9 +3,7 @@ ifeq ($(origin LDFLAGS), default)
 endif
 
 CFLAGS ?= -O0
-CXXFLAGS ?= `llvm-config-18 --cxxflags`
 LLVM_FLAGS ?= `llvm-config-18 --cxxflags --ldflags --system-libs --libs core`
-LLVM_IR_FLAG = -S -emit-llvm
 OUT_O_DIR ?= build
 DOT_FOLDER := dot
 COMMONINC = -I./include -I./include/utils

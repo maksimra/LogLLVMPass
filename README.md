@@ -19,11 +19,15 @@ cd LogLLVMPass
 ```
 make
 ```
-- To run on your program:
+4) To add executable permission:
 ```
-shlang <your_code.c> -o <executable>
+chmod +x shlang
 ```
-- To build def-use graph (only after run):
+5) To run on your program:
+```
+./shlang <your_code.c> -o <executable>
+```
+6) To build def-use graph:
 ```
 make graph
 ```
