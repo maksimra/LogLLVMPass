@@ -11,20 +11,22 @@ SRC = ./source
 
 override CFLAGS += $(COMMONINC)
 
-TEST_FILES = test_files/recursive.c
 FUNCTION_SRC = logFunctions.c compare_doubles.c void_stack.c
 FUNCTION_OBJ = $(FUNCTION_SRC:%.c=$(OUT_O_DIR)/%.o)
 
 .PHONY: all
 all: $(OUT_O_DIR)/LogPass.so $(DOT_FOLDER)
 
-$(OUT_O_DIR)/LogPass.so: $(FUNCTION_OBJ) $(SRC)/LogPass.cpp
-	clang -shared -fPIC $^ -o $@ $(LLVM_FLAGS) $(COMMONINC)
+$(OUT_O_DIR)/LogPass.so: $(OUT_O_DIR)/LogPass.o $(FUNCTION_OBJ)
+	clang -shared -fPIC $^ -o $@ $(LDFLAGS)
+
+$(OUT_O_DIR)/LogPass.o: $(SRC)/LogPass.cpp
+	clang -c -fPIC $^ -o $@ $(LLVM_FLAGS) $(COMMONINC)
 
 $(OUT_O_DIR)/%.o: $(SRC)/%.c $(OUT_O_DIR)
 	clang -c $< -o $@ -fPIC $(CFLAGS)
 
-$(OUT_O_DIR)/%.o: $(SRC)/utils/%.c $(OUT_O_DIR)
+$(OUT_O_DIR)/%.o: $(SRC)/utils/%.c $(OUT_O_DIR) 
 	clang -c $< -o $@ -fPIC $(CFLAGS)
 
 $(OUT_O_DIR):
