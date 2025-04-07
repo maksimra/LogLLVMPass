@@ -2,5 +2,5 @@
 import sys
 import subprocess
 
-args = ['clang', '-O1', '-fpass-plugin=build/LogPass.so', '-lstdc++'] + sys.argv[1:]
+args = ['clang', '-O1', '-fpass-plugin=build/LogPass.so', '-L./build', '-lstdc++'] + sys.argv[1:]
 subprocess.run(args)
