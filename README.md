@@ -9,7 +9,7 @@ This program adds instrumentation to LLVM IR and generates a .png def-use graph.
 (for the code in main.c)
 1) Clone the repository:
 ```
-git clone https://github.com/maksimra/LogLLVMPass.git
+git clone --depth=1 https://github.com/maksimra/LogLLVMPass.git
 ```
 2) Go to the folder with project:
 ```
