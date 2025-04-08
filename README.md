@@ -26,7 +26,7 @@ make
 ```
 5) To compile your program:
 ```
-./shlang <your_code.c> -o <executable>
+shlang <your_code.c> -o <executable>
 ```
 6)
 ```
