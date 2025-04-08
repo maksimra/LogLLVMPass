@@ -18,6 +18,11 @@ FUNCTION_OBJ = $(FUNCTION_SRC:%.c=$(OUT_O_DIR)/%.o)
 DEPS = $(FUNCTION_OBJ:%.o=%.d)
 -include $(DEPS)
 
+.PHONY: install
+install:
+	@sudo cp shlang /usr/local/bin/shlang 
+	@sudo chmod +x /usr/local/bin/shlang   
+
 .PHONY: all
 all: $(OUT_O_DIR)/LogPass.so $(OUT_O_DIR)/liblog.a $(DOT_FOLDER) $(LOG_FOLDER)
 

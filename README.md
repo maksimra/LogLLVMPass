@@ -15,13 +15,13 @@ git clone --depth=1 https://github.com/maksimra/LogLLVMPass.git
 ```
 cd LogLLVMPass
 ```
-3) Compile the project:
+3) To add executable permission:
+```
+make install
+```
+4) Compile the project:
 ```
 make
-```
-4) To add executable permission:
-```
-chmod +x shlang
 ```
 5) To compile your program:
 ```
