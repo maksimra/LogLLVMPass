@@ -10,10 +10,13 @@ LOG_FOLDER = logs
 COMMONINC = -I./include -I./include/utils
 SRC = ./source
 
-override CFLAGS += $(COMMONINC)
+override CFLAGS += $(COMMONINC) -MMD -MP
 
 FUNCTION_SRC = logFunctions.c compare_doubles.c void_stack.c
 FUNCTION_OBJ = $(FUNCTION_SRC:%.c=$(OUT_O_DIR)/%.o)
+
+DEPS = $(FUNCTION_OBJ:%.o=%.d)
+-include $(DEPS)
 
 .PHONY: all
 all: $(OUT_O_DIR)/LogPass.so $(OUT_O_DIR)/liblog.a $(DOT_FOLDER) $(LOG_FOLDER)
