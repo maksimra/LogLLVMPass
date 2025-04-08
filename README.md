@@ -59,4 +59,4 @@ int main()
 ***
 - Appropriate graph
 
-![Appropriate graph](example/ResultGraph.svg)
+![Appropriate graph](example/ResultGraph.jpg)
