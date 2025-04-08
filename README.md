@@ -5,6 +5,7 @@ This program adds instrumentation to LLVM IR and generates a .png def-use graph.
 - *OC*: Linux
 - *Compiler*: Clang 18.1.3
 - *LLVM*: Version 18.1.3 (built with RTTI support)
+- *python3*
 ## Build
 (for the code in main.c)
 1) Clone the repository:
@@ -41,3 +42,21 @@ make graph
 After completing these steps, you will have:
 
 - The def-use graph: build/ResultGraph.svg
+
+## Example
+
+- Code
+```
+#include <stdio.h>
+
+int main()
+{
+    int x = 9;
+    int y = 8;
+    printf("%d\n", x + y);
+}
+```
+***
+- Appropriate graph
+
+![Appropriate graph](example/ResultGraph.svg)
