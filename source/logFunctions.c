@@ -35,10 +35,10 @@ static FILE *DEF_USE_FILE = NULL;
 
 void logInit()
 {
-	logFile = fopen("logs/logFile.txt", "w");
-	if (!logFile)
+    logFile = fopen("logs/logFile.txt", "w");
+    if (!logFile)
     {
-		fprintf(stderr, "cannot open log file.\n");
+        fprintf(stderr, "cannot open log file.\n");
         logFile = stderr;
     }
 
@@ -81,7 +81,7 @@ void logFinish()
 
     fclose(CONTROL_FLOW_FILE);
     fclose(DEF_USE_FILE);
-	fclose(logFile);
+    fclose(logFile);
 }
 
 void processOperands(const char *instName, void *value, enum LogFunctionNumber valueType, va_list *args)

@@ -156,7 +156,6 @@ class DefUseInstrumentationPass : public llvm::PassInfoMixin<DefUseInstrumentati
                 }
             }
 
-            
             llvm::IRBuilder<> builder(I);
             if (auto *callInst = llvm::dyn_cast<llvm::CallInst>(I))
                 insertInstrBeforeCall(builder, *I);
@@ -174,11 +173,9 @@ class DefUseInstrumentationPass : public llvm::PassInfoMixin<DefUseInstrumentati
 
     static void insertInstrBeforeCall(llvm::IRBuilder<> &builder, llvm::Instruction &I)
     {
-        llvm::FunctionType *funcType = llvm::FunctionType::get(
-            llvm::Type::getVoidTy(builder.getContext()),
-            {llvm::PointerType::getUnqual(llvm::Type::getInt8Ty(builder.getContext()))},
-            false
-        );
+        llvm::FunctionType *funcType =
+            llvm::FunctionType::get(llvm::Type::getVoidTy(builder.getContext()),
+                                    {llvm::PointerType::getUnqual(llvm::Type::getInt8Ty(builder.getContext()))}, false);
 
         llvm::Module *M = builder.GetInsertBlock()->getModule();
         llvm::FunctionCallee logBeforeCall = M->getOrInsertFunction("beforeCall", funcType);
