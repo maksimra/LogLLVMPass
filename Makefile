@@ -49,7 +49,7 @@ $(DOT_FOLDER):
 
 .PHONY: graph
 graph:
-	@cat dot/ControlFlow.dot dot/DefUse.dot > dot/ResultGraph.dot
+	@cat $(DOT_FOLDER)/ControlFlow.dot $(DOT_FOLDER)/DefUse.dot > $(DOT_FOLDER)/ResultGraph.dot
 	dot -Tsvg dot/ResultGraph.dot -o $(OUT_O_DIR)/ResultGraph.svg
 
 .PHONY: clean
